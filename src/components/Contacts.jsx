@@ -1,6 +1,24 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const Contacts = () => {
+  const [location, setLocation] = useState(null);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocation({ latitude, longitude });
+        },
+        (error) => {
+          console.error("Error getting geolocation:", error);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  }, []);
+
   return (
     <section className="contacts">
       <h2>Контакты</h2>
@@ -13,6 +31,13 @@ const Contacts = () => {
         <li>Суббота: с 10:00 до 18:00</li>
         <li>Воскресенье: выходной</li>
       </ul>
+      {location && (
+        <div>
+          <h3>Ваше текущее местоположение:</h3>
+          <p>Широта: {location.latitude}</p>
+          <p>Долгота: {location.longitude}</p>
+        </div>
+      )}
     </section>
   );
 };

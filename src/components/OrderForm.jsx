@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import emailjs from "emailjs-com";
 
+
 const OrderForm = () => {
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     address: "",
@@ -12,43 +14,94 @@ const OrderForm = () => {
     zip: "",
     product: "",
     quantity: 1,
+    totalPrice: 0,
     comments: "",
   });
+
+  const [nameError, setNameError] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleProductChange = (e) => {
+    const selectedProduct = e.target.value;
+    setFormData({
+      ...formData,
+      product: selectedProduct,
+      totalPrice: getProductPrice(selectedProduct) * formData.quantity,
+    });
+  };
+
+  const handleQuantityChange = (e) => {
+    const quantity = parseInt(e.target.value);
+    setFormData({
+      ...formData,
+      quantity,
+      totalPrice: getProductPrice(formData.product) * quantity,
+    });
+  };
+
+  const getProductPrice = (productName) => {
+    // Здесь можно определить цены для каждого товара
+    switch (productName) {
+      case "Футболка":
+        return 19.99;
+      case "Джинсы":
+        return 49.99;
+      case "Платье":
+        return 79.99;
+      case "Кроссовки":
+        return 89.99;
+      case "Рубашка":
+        return 34.99;
+      case "Шорты":
+        return 29.99;
+      case "Свитер":
+        return 59.99;
+      case "Куртка":
+        return 99.99;
+      default:
+        return 0;
+    }
+  };
+
+  const validateName = () => {
+    const { firstName, lastName } = formData;
+    const isValidName = /^[а-яА-ЯёЁ]+$/.test(firstName) && /^[а-яА-ЯёЁ]+$/.test(lastName);
+    setNameError(isValidName ? "" : "Пожалуйста, введите только русские буквы");
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(e.target.email.value);
+    validateName();
 
-    emailjs
-      .sendForm(
-        "service_muh6t5k",
-        "template_djpc2zo",
-        e.target,
-        "5Df-5T__8yp-FkhWQ"
-      )
-      .then((result) => {
-        console.log("Email sent successfully:", result.text);
-        // Сброс формы после успешной отправки
-        setFormData({
-          name: "",
-          email: "",
-          phone: "",
-          address: "",
-          city: "",
-          state: "",
-          zip: "",
-          product: "",
-          quantity: 1,
-          comments: "",
+    if (!nameError) {
+      emailjs
+        .sendForm("service_muh6t5k", "template_djpc2zo", e.target, "5Df-5T__8yp-FkhWQ")
+        .then((result) => {
+          console.log("Email sent successfully:", result.text);
+          // Сброс формы после успешной отправки
+          setFormData({
+            firstName: "",
+            lastName: "",
+            email: "",
+            phone: "",
+            address: "",
+            city: "",
+            state: "",
+            zip: "",
+            product: "",
+            quantity: 1,
+            totalPrice: 0,
+            comments: "",
+          });
+          setNameError("");
+        })
+        .catch((error) => {
+          console.error("Error sending email:", error);
         });
-      })
-      .catch((error) => {
-        console.error("Error sending email:", error);
-      });
+    }
   };
 
   return (
@@ -56,16 +109,30 @@ const OrderForm = () => {
       <h2>Форма заказа</h2>
       <form className="order-form" onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="name">Имя:</label>
+          <label htmlFor="firstName">Имя:</label>
           <input
             type="text"
-            id="name"
-            name="name"
-            value={formData.name}
+            id="firstName"
+            name="firstName"
+            value={formData.firstName}
             onChange={handleChange}
+            onBlur={validateName}
             required
           />
         </div>
+        <div className="form-group">
+          <label htmlFor="lastName">Фамилия:</label>
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            value={formData.lastName}
+            onChange={handleChange}
+            onBlur={validateName}
+            required
+          />
+        </div>
+        {nameError && <div className="error">{nameError}</div>}
         <div className="form-group">
           <label htmlFor="email">Email:</label>
           <input
@@ -138,7 +205,7 @@ const OrderForm = () => {
             id="product"
             name="product"
             value={formData.product}
-            onChange={handleChange}
+            onChange={handleProductChange}
             required
           >
             <option value="">Выберите товар</option>
@@ -159,9 +226,19 @@ const OrderForm = () => {
             id="quantity"
             name="quantity"
             value={formData.quantity}
-            onChange={handleChange}
+            onChange={handleQuantityChange}
             min="1"
             required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="totalPrice">Итоговая стоимость:</label>
+          <input
+            type="text"
+            id="totalPrice"
+            name="totalPrice"
+            value={formData.totalPrice}
+            readOnly
           />
         </div>
         <div className="form-group">

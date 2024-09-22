@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "../App.css";
 import { Link } from "react-router-dom";
 import { FaTimes } from "react-icons/fa";
+import Clock from "./Clock";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,6 +10,12 @@ const Header = () => {
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
+
+
+  const currentDate = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const formattedDate = currentDate.toLocaleDateString('ru-RU', options);
+  
 
   return (
     <header className="header">
@@ -36,6 +43,12 @@ const Header = () => {
           </svg>
         </Link>
       </div>
+      <Clock/>
+      
+      <div className="clock">
+      {formattedDate}
+      </div>
+
       <div className={`burger ${isOpen ? "open" : ""}`} onClick={toggleMenu}>
         <div className="line"></div>
         <div className="line"></div>

@@ -9,7 +9,7 @@ import OrderForm from "./components/OrderForm";
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
-const App = () => {
+const App = () => {  
   return (
     <Router>
       <div className="app">
