@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import emailjs from "emailjs-com";
-
 
 const OrderForm = () => {
   const [formData, setFormData] = useState({
@@ -18,89 +18,118 @@ const OrderForm = () => {
     comments: "",
   });
 
+  const [products, setProducts] = useState([]);
   const [nameError, setNameError] = useState("");
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get("http://localhost:3001/api/products");
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleProductChange = (e) => {
-    const selectedProduct = e.target.value;
-    setFormData({
-      ...formData,
-      product: selectedProduct,
-      totalPrice: getProductPrice(selectedProduct) * formData.quantity,
-    });
+    const selectedProduct = products.find(
+      (product) => product.id === parseInt(e.target.value)
+    );
+    if (selectedProduct) {
+      setFormData({
+        ...formData,
+        product: selectedProduct.id,
+        totalPrice: selectedProduct.price * formData.quantity,
+      });
+    }
   };
 
   const handleQuantityChange = (e) => {
     const quantity = parseInt(e.target.value);
-    setFormData({
-      ...formData,
-      quantity,
-      totalPrice: getProductPrice(formData.product) * quantity,
-    });
-  };
-
-  const getProductPrice = (productName) => {
-    // Здесь можно определить цены для каждого товара
-    switch (productName) {
-      case "Футболка":
-        return 19.99;
-      case "Джинсы":
-        return 49.99;
-      case "Платье":
-        return 79.99;
-      case "Кроссовки":
-        return 89.99;
-      case "Рубашка":
-        return 34.99;
-      case "Шорты":
-        return 29.99;
-      case "Свитер":
-        return 59.99;
-      case "Куртка":
-        return 99.99;
-      default:
-        return 0;
+    const selectedProduct = products.find(
+      (product) => product.id === formData.product
+    );
+    if (selectedProduct) {
+      setFormData({
+        ...formData,
+        quantity,
+        totalPrice: selectedProduct.price * quantity,
+      });
     }
   };
 
   const validateName = () => {
     const { firstName, lastName } = formData;
-    const isValidName = /^[а-яА-ЯёЁ]+$/.test(firstName) && /^[а-яА-ЯёЁ]+$/.test(lastName);
+    const isValidName =
+      /^[а-яА-ЯёЁ]+$/.test(firstName) && /^[а-яА-ЯёЁ]+$/.test(lastName);
     setNameError(isValidName ? "" : "Пожалуйста, введите только русские буквы");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     validateName();
 
     if (!nameError) {
-      emailjs
-        .sendForm("service_muh6t5k", "template_djpc2zo", e.target, "5Df-5T__8yp-FkhWQ")
-        .then((result) => {
-          console.log("Email sent successfully:", result.text);
-          // Сброс формы после успешной отправки
-          setFormData({
-            firstName: "",
-            lastName: "",
-            email: "",
-            phone: "",
-            address: "",
-            city: "",
-            state: "",
-            zip: "",
-            product: "",
-            quantity: 1,
-            totalPrice: 0,
-            comments: "",
-          });
-          setNameError("");
-        })
-        .catch((error) => {
-          console.error("Error sending email:", error);
+      try {
+        // Преобразуем данные формы в формат, ожидаемый сервером
+        const orderData = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+          product: formData.product, // Убедитесь, что это ID продукта
+          quantity: formData.quantity,
+          totalPrice: formData.totalPrice,
+          comments: formData.comments,
+        };
+
+        // Отправка заказа на сервер
+        const response = await axios.post(
+          "http://localhost:3001/api/orders",
+          orderData
+        );
+        console.log("Order created:", response.data);
+
+        // Отправка email через emailjs
+        await emailjs.sendForm(
+          "service_muh6t5k",
+          "template_djpc2zo",
+          e.target,
+          "5Df-5T__8yp-FkhWQ"
+        );
+
+        console.log("Order placed and email sent successfully");
+
+        // Сброс формы после успешной отправки
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          address: "",
+          city: "",
+          state: "",
+          zip: "",
+          product: "",
+          quantity: 1,
+          totalPrice: 0,
+          comments: "",
         });
+        setNameError("");
+      } catch (error) {
+        console.error("Error placing order:", error);
+      }
     }
   };
 
@@ -209,14 +238,11 @@ const OrderForm = () => {
             required
           >
             <option value="">Выберите товар</option>
-            <option value="Футболка">Футболка</option>
-            <option value="Джинсы">Джинсы</option>
-            <option value="Платье">Платье</option>
-            <option value="Кроссовки">Кроссовки</option>
-            <option value="Рубашка">Рубашка</option>
-            <option value="Шорты">Шорты</option>
-            <option value="Свитер">Свитер</option>
-            <option value="Куртка">Куртка</option>
+            {products.map((product) => (
+              <option key={product.id} value={product.id}>
+                {product.name}
+              </option>
+            ))}
           </select>
         </div>
         <div className="form-group">
@@ -237,7 +263,7 @@ const OrderForm = () => {
             type="text"
             id="totalPrice"
             name="totalPrice"
-            value={formData.totalPrice}
+            value={formData.totalPrice.toFixed(2)}
             readOnly
           />
         </div>

@@ -1,34 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import NewsItem from "./NewsItem";
 import "../App.css";
 
 const News = () => {
-  const newsData = [
-    {
-      id: 1,
-      title: "Новая коллекция одежды уже в продаже!",
-      content:
-        "Мы рады представить вам нашу новую коллекцию одежды для весенне-летнего сезона. Яркие цвета, стильные фасоны и высокое качество материалов - все это ждет вас в нашем магазине.",
-    },
-    {
-      id: 2,
-      title: "Скидки до 50% на обувь",
-      content:
-        "Не упустите возможность приобрести стильную и удобную обувь по привлекательным ценам. Только до конца месяца скидки до 50% на избранные модели.",
-    },
-    {
-      id: 3,
-      title: "Бесплатная доставка при заказе от $100",
-      content:
-        "Мы заботимся о наших клиентах и предлагаем бесплатную доставку при заказе на сумму от $100. Совершайте покупки выгодно и с комфортом!",
-    },
-    {
-      id: 4,
-      title: "Новое поступление аксессуаров",
-      content:
-        "Дополните свой образ стильными аксессуарами из нашей новой коллекции. Широкий выбор сумок, шарфов, украшений и многого другого уже доступен на нашем сайте.",
-    },
-  ];
+  const [newsData, setNewsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get("http://localhost:3001/api/news");
+        setNewsData(response.data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching news:", error);
+        setError("Failed to fetch news");
+        setIsLoading(false);
+      }
+    };
+
+    fetchNews();
+  }, []);
+
+  if (isLoading) return <p>Loading news...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <section className="news">

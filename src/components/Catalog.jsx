@@ -1,74 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import ProductCard from "./ProductCard";
 import "../App.css";
 
 const Catalog = () => {
-  const products = [
-    {
-      id: 1,
-      name: "Футболка",
-      price: 19.99,
-      image:
-        "https://pplx-res.cloudinary.com/image/upload/v1725816477/ai_generated_images/dy7pmdegte6w1rxylkrk.png",
-      currency: "$",
-    },
-    {
-      id: 2,
-      name: "Джинсы",
-      price: 49.99,
-      image:
-        "https://pplx-res.cloudinary.com/image/upload/v1725816560/ai_generated_images/v8nxny4d4rtqprdsajyr.png",
-      currency: "$",
-    },
-    {
-      id: 3,
-      name: "Платье",
-      price: 79.99,
-      image:
-        "https://pplx-res.cloudinary.com/image/upload/v1725816610/ai_generated_images/ug5oyuitqapafuhsxrdq.png",
-      currency: "$",
-    },
-    {
-      id: 4,
-      name: "Кроссовки",
-      price: 89.99,
-      image:
-        "https://pplx-res.cloudinary.com/image/upload/v1725816719/ai_generated_images/jk7ya9bvevopfavwvozp.png",
-      currency: "$",
-    },
-    {
-      id: 5,
-      name: "Рубашка",
-      price: 34.99,
-      image:
-        "https://pplx-res.cloudinary.com/image/upload/v1725816768/ai_generated_images/lci5u19mthbxa96enay5.png",
-      currency: "$",
-    },
-    {
-      id: 6,
-      name: "Шорты",
-      price: 29.99,
-      image:
-        "https://pplx-res.cloudinary.com/image/upload/v1725816830/ai_generated_images/cpjocahccsxqbp8yydlu.png",
-      currency: "$",
-    },
-    {
-      id: 7,
-      name: "Свитер",
-      price: 59.99,
-      image:
-        "https://pplx-res.cloudinary.com/image/upload/v1725816863/ai_generated_images/mixemjr80gjbr27vuxd3.png",
-      currency: "$",
-    },
-    {
-      id: 8,
-      name: "Куртка",
-      price: 99.99,
-      image:
-        "https://pplx-res.cloudinary.com/image/upload/v1725816906/ai_generated_images/uxkgomymejfoxs0pdtl1.png",
-      currency: "$",
-    },
-  ];
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get("http://localhost:3001/api/products");
+        setProducts(response.data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        setError("Failed to fetch products");
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  if (isLoading) return <p>Loading products...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <section className="catalog">

@@ -6,16 +6,20 @@ import Clock from "./Clock";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const isAuthenticated = sessionStorage.getItem("isAuthenticated") === "true";
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
-
   const currentDate = new Date();
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  const formattedDate = currentDate.toLocaleDateString('ru-RU', options);
-  
+  const options = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+  const formattedDate = currentDate.toLocaleDateString("ru-RU", options);
 
   return (
     <header className="header">
@@ -43,11 +47,9 @@ const Header = () => {
           </svg>
         </Link>
       </div>
-      <Clock/>
-      
-      <div className="clock">
-      {formattedDate}
-      </div>
+      <Clock />
+
+      <div className="clock">{formattedDate}</div>
 
       <div className={`burger ${isOpen ? "open" : ""}`} onClick={toggleMenu}>
         <div className="line"></div>
@@ -70,6 +72,28 @@ const Header = () => {
               Форма заказа
             </Link>
           </li>
+          {isAuthenticated ? (
+            <>
+              <li>
+                <Link to="/admin" onClick={toggleMenu}>
+                  Админ панель
+                </Link>
+              </li>
+            </>
+          ) : (
+            <>
+              <li>
+                <Link to="/login" onClick={toggleMenu}>
+                  Вход
+                </Link>
+              </li>
+              <li>
+                <Link to="/register" onClick={toggleMenu}>
+                  Регистрация
+                </Link>
+              </li>
+            </>
+          )}
         </ul>
         <button className="close-btn" onClick={toggleMenu}>
           <FaTimes />
